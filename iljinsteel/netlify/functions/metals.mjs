@@ -134,31 +134,50 @@ function parseOilRows(json) {
   return Array.isArray(raw) ? raw : [raw].filter(Boolean);
 }
 
+function num(v) {
+  const n = Number(String(v ?? '').replace(/[,+]/g, '').trim());
+  return Number.isFinite(n) ? n : null;
+}
+
+function getOpinetKey() {
+  return process.env.OPINET_API_KEY
+    || process.env.OPINET_CODE
+    || process.env.OPINET_CERTKEY
+    || process.env.OPINET_CERT_KEY
+    || process.env.OPINET_KEY
+    || process.env.VERCEL_OPINET_API_KEY
+    || process.env.VITE_OPINET_API_KEY
+    || '';
+}
+
 async function fetchOpinetFuel(key) {
   if (!key) return [];
   try {
     const paramsA = `out=json&code=${encodeURIComponent(key)}`;
     const paramsB = `out=json&certkey=${encodeURIComponent(key)}`;
-    const j = await fetchJsonFirst([
+    const urls = [
       `https://www.opinet.co.kr/api/avgAllPrice.do?${paramsA}`,
       `https://www.opinet.co.kr/api/avgAllPrice.do?${paramsB}`,
-      `https://www.opinet.co.kr/api/avgAllPrice.do?${paramsA}&prodcd=B027`,
-      `https://www.opinet.co.kr/api/avgAllPrice.do?${paramsB}&prodcd=B027`,
-    ]);
-    const rows = parseOilRows(j);
+      `https://www.opinet.co.kr/api/avgRecentPrice.do?${paramsA}&prodcd=B027`,
+      `https://www.opinet.co.kr/api/avgRecentPrice.do?${paramsB}&prodcd=B027`,
+      `https://www.opinet.co.kr/api/avgRecentPrice.do?${paramsA}&prodcd=D047`,
+      `https://www.opinet.co.kr/api/avgRecentPrice.do?${paramsB}&prodcd=D047`,
+    ];
+    const jsons = await Promise.allSettled(urls.map(url => fetchJsonFirst([url])));
+    const rows = jsons.flatMap(r => r.status === 'fulfilled' ? parseOilRows(r.value) : []);
     const map = new Map(rows.map(r => [String(r.PRODCD || r.prodcd || r.PROD_CD || '').trim(), r]));
     const make = (code, name, color) => {
       const row = map.get(code) || rows.find(r => String(r.PRODNM || r.PROD_NM || r.prodNm || '').includes(name.replace('국내 ', '').replace(' 평균','')));
-      const price = Number(row?.PRICE ?? row?.price ?? row?.AVG_PRICE ?? row?.avgPrice);
-      const diff = Number(row?.DIFF ?? row?.diff ?? row?.CHANGE ?? row?.change);
-      return Number.isFinite(price) ? {
+      const price = num(row?.PRICE ?? row?.price ?? row?.AVG_PRICE ?? row?.avgPrice);
+      const diff = num(row?.DIFF ?? row?.diff ?? row?.CHANGE ?? row?.change);
+      return price != null ? {
         symbol:code,
         name,
         category:'oil', cat:'oil',
         unit:'KRW/L', raw:'KRW/L', color,
         price:Math.round(price),
-        prev:Number.isFinite(diff) ? Math.round(price - diff) : null,
-        change:Number.isFinite(diff) ? Math.round(diff) : null,
+        prev:diff != null ? Math.round(price - diff) : null,
+        change:diff != null ? Math.round(diff) : null,
         changePct:null,
         history:[], ok:true, demo:false,
         source:'Opinet avgAllPrice',
@@ -202,7 +221,7 @@ export const handler = async () => {
     const [yfResults, nickel, domesticFuel] = await Promise.all([
       Promise.allSettled(SYMBOLS.map(fetchOne)),
       fetchNickel(process.env.METALS_DEV_KEY),
-      fetchOpinetFuel(process.env.OPINET_API_KEY || process.env.OPINET_CODE || process.env.OPINET_CERTKEY || process.env.OPINET_KEY),
+      fetchOpinetFuel(getOpinetKey()),
     ]);
 
     const metals = yfResults.map((r, i) => r.status === 'fulfilled' ? r.value : fallbackOne(SYMBOLS[i], r.reason?.message));
@@ -220,7 +239,7 @@ export const handler = async () => {
         updatedAt:new Date().toISOString(),
         notes:[
           !nickel ? '니켈 실시간 표시에는 METALS_DEV_KEY 환경변수 설정이 필요합니다.' : null,
-          !(domesticFuel?.length) ? '국내 휘발유/경유 평균가격 표시에는 OPINET_API_KEY(또는 OPINET_CODE) 환경변수 설정이 필요합니다.' : null,
+          !(domesticFuel?.length) ? '국내 휘발유/경유 평균가격 표시에는 Vercel 환경변수 OPINET_API_KEY(또는 OPINET_CODE/OPINET_CERTKEY) 설정이 필요합니다.' : null,
           demo ? '외부 시세 API 접속 실패로 샘플 가격을 표시하지 않습니다.' : null,
           '철강 HRC(HRC=F)와 철광석(TIO=F)은 Yahoo Finance 선물 심볼 기반 참고값입니다. 응답이 없거나 0이면 표시하지 않습니다.',
           '광물 가격은 Yahoo Finance 선물 심볼 기반 참고값이며 LME official cash/3M 가격이 아닙니다.',

@@ -1,29 +1,73 @@
-# ILJIN Portal - Vercel 배포 안내
+# ILJIN Portal Vercel 재배포 안내
 
-이 ZIP은 Netlify용 함수 경로를 Vercel용 `/api/*` 경로로 변환한 배포본입니다.
+이 프로젝트는 Vercel에서 `dist` 폴더를 정적 출력물로 배포하고, `api/*.mjs` 파일을 Vercel API Routes로 사용합니다.
 
-## 배포 방법
+## 1. 오피넷 API Key 연결
 
-1. 이 ZIP을 압축 해제합니다.
-2. GitHub 저장소에 파일 전체를 업로드합니다.
-3. Vercel에서 `Add New Project`를 누르고 해당 GitHub 저장소를 Import합니다.
-4. Framework Preset은 자동 감지 또는 Other 그대로 둡니다.
-5. Build Command는 `npm run build`, Output Directory는 `dist`입니다. `vercel.json`에 이미 들어 있습니다.
-6. 환경변수가 필요한 경우 Project Settings > Environment Variables에 추가합니다.
-7. Deploy를 누릅니다.
+오피넷에서 받은 무료 API Key는 코드에 직접 넣지 말고 Vercel 환경변수로 등록합니다.
 
-## 필요한 환경변수
+1. Vercel 접속
+2. `iljin-portal` 프로젝트 선택
+3. `Settings` 클릭
+4. `Environment Variables` 클릭
+5. 아래 값 추가
 
-- `OPINET_API_KEY`: 국내 휘발유/경유 평균가 표시용. 없으면 해당 값만 안내 문구로 표시됩니다.
-- `FRED_API_KEY`: FRED 광물 월간 지수 안정 호출용. 없으면 CSV fallback을 시도합니다.
-- `METALS_DEV_KEY`: metals.dev 니켈 실시간 가격용. 없으면 표시 가능한 다른 참고값만 표시됩니다.
-- `KBO_TEAM`: KBO 선호팀 설정용. 선택 사항입니다.
+| Name | Value | Environment |
+| --- | --- | --- |
+| `OPINET_API_KEY` | `<오피넷 무료 API Key>` | Production, Preview, Development |
 
-## 주요 변환 내용
+6. `Save` 클릭
 
-- `/.netlify/functions/weather` -> `/api/weather`
-- `/.netlify/functions/metals` -> `/api/metals`
-- `/.netlify/functions/news` -> `/api/news`
-- `/.netlify/functions/fx` -> `/api/fx`
-- `/.netlify/functions/mineral` -> `/api/mineral`
-- `/.netlify/functions/meal` -> `/api/meal`
+환경변수를 새로 추가하거나 수정한 뒤에는 반드시 재배포해야 새 값이 반영됩니다.
+
+## 2. GitHub에 수정본 업로드
+
+수정본 폴더:
+
+```text
+C:\Users\IJMAIL\Desktop\iljin-portal-VERCEL-STEELMAX-20260601-work
+```
+
+이 폴더의 파일 전체를 GitHub 저장소에 업로드합니다.
+
+중요:
+
+- `assets/`
+- `api/`
+- `netlify/functions/`
+- `dist/`
+- `package.json`
+- `vercel.json`
+
+위 폴더와 파일이 함께 올라가야 합니다.
+
+## 3. Vercel 재배포
+
+GitHub에 push하면 Vercel이 자동 배포됩니다.
+
+자동 배포가 바로 안 되면:
+
+1. Vercel 프로젝트 접속
+2. `Deployments` 클릭
+3. 가장 최근 배포 오른쪽 메뉴 클릭
+4. `Redeploy` 클릭
+5. `Use existing Build Cache`는 꺼도 됩니다.
+6. `Redeploy` 실행
+
+## 4. 배포 후 확인
+
+배포가 끝나면 홈페이지에서 아래 항목을 확인합니다.
+
+- 유가 시세에 `WTI 원유`, `브렌트 원유`, `국내 휘발유 평균`, `국내 경유 평균`이 표시되는지 확인
+- `국내 휘발유/경유 평균가격 표시에는 Vercel 환경변수...` 안내 문구가 사라졌는지 확인
+- 상단의 `철강·강관 검색` 버튼이 열리는지 확인
+
+## 5. 문제 해결
+
+국내 휘발유/경유가 계속 안 나오면 아래를 확인합니다.
+
+- Vercel 환경변수 이름이 정확히 `OPINET_API_KEY`인지 확인
+- 환경변수 등록 후 새로 재배포했는지 확인
+- 오피넷 무료 API 호출 가능 건수가 남아 있는지 확인
+- Vercel 배포 로그에서 `/api/metals` 관련 오류가 있는지 확인
+
