@@ -8,6 +8,7 @@ const FEEDS = [
   { name:"Google 뉴스", url:"https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko", type:"ko" },
   { name:"Google 뉴스", url:"https://news.google.com/rss/search?q=%EC%B2%A0%EA%B0%95%20OR%20%EA%B0%95%EA%B4%80%20OR%20%EA%B4%80%EC%84%B8&hl=ko&gl=KR&ceid=KR:ko", type:"ko" },
   { name:"Bloomberg", url:"https://feeds.bloomberg.com/markets/news.rss", type:"en" },
+  { name:"Google News", url:"https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en", type:"en" },
   { name:"Google News", url:"https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en", type:"en" },
 ];
 

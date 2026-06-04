@@ -812,12 +812,12 @@
     if (!document.body || !window.NodeFilter) return;
     const replacements = [
       [
-        "Yahoo Finance 참고값 · 실시간 아님",
-        "Yahoo Finance 참고값 · 약 3분마다 재조회, 공급원 지연 시 수분~수십분 차이 가능",
+        "코스피·코스닥·나스닥·다우 참고값",
+        "코스피·코스닥·나스닥·다우 참고값 · 약 3분마다 갱신",
       ],
       [
-        "동향 파악용 참고값입니다. 0/비정상 응답은 표시하지 않습니다.",
-        "LME·FRED·Yahoo Finance 소스 기반 참고값입니다. FRED 월간 지표, Yahoo/LME 계열은 API 응답 기준으로 갱신됩니다.",
+        "니켈·구리·철강 참고값",
+        "FRED, LME 참고값",
       ],
     ];
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -831,6 +831,40 @@
         if (text.includes(from)) text = text.replace(from, to);
       });
       if (text !== node.nodeValue) node.nodeValue = text;
+    });
+
+    document.querySelectorAll("div,span").forEach((el) => {
+      const text = [...el.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.nodeValue || "")
+        .join(" ")
+        .trim();
+      if (
+        text.includes("Yahoo Finance 참고값") ||
+        text.includes("LME·FRED·Yahoo Finance 소스 기반") ||
+        text.includes("LME,FRED,Yahoo finance") ||
+        text.includes("동향 파악용 참고값")
+      ) {
+        el.remove();
+      }
+    });
+
+    document.querySelectorAll(".il-home-readable a, .il-home-readable button").forEach((el) => {
+      if ((el.textContent || "").trim() === "이번 주 식단표(마포)") el.textContent = "이번 주 식단표";
+    });
+
+    document.querySelectorAll('img[src*="iljin-logo"]').forEach((img) => {
+      img.style.width = "180px";
+      img.style.height = "48px";
+      img.style.objectFit = "contain";
+      img.style.maxWidth = "calc(100% - 24px)";
+      const holder = img.closest("a,div");
+      if (holder) {
+        holder.style.minHeight = "64px";
+        holder.style.display = "flex";
+        holder.style.alignItems = "center";
+        holder.style.justifyContent = "center";
+      }
     });
   }
 
@@ -870,6 +904,13 @@
     if (mq.matches) mount();
     else unmount();
   }
+
+  function mountGlobalPolish() {
+    installMarketCopyHook();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountGlobalPolish);
+  else mountGlobalPolish();
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", handleMode);
   else handleMode();

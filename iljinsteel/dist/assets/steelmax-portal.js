@@ -1,7 +1,7 @@
 (function () {
   const STORE_KEY = "iljin-steelmax-saved-v2";
   const state = {
-    query: "강관",
+    query: "",
     category: "",
     page: 1,
     categories: [],
@@ -164,7 +164,7 @@
           <button id="smxCopyBtn">본문 복사</button>
         </div>
         <div class="body">${esc(it.content || it.excerpt || "본문을 불러오지 못했습니다.")}</div>
-        <div class="smx-source">자료 출처: ${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">Steelmax 원문</a>` : "Steelmax"}</div>
+        <div class="smx-source">자료 출처: ${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">원문 링크</a>` : "원문"}</div>
       </article>`;
     document.querySelector("#smxSaveBtn")?.addEventListener("click", () => {
       const key = String(it.id || it.url);
@@ -177,7 +177,7 @@
     });
     document.querySelector("#smxCopyBtn")?.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(`${it.title}\n\n${it.content || it.excerpt || ""}\n\n자료 출처: ${it.url || "Steelmax"}`);
+        await navigator.clipboard.writeText(`${it.title}\n\n${it.content || it.excerpt || ""}\n\n자료 출처: ${it.url || "원문"}`);
         setStatus("본문을 클립보드에 복사했습니다.");
       } catch {
         setStatus("복사 권한이 없어 실패했습니다.");
@@ -203,6 +203,12 @@
   }
 
   async function search() {
+    if (!state.query && !state.category) {
+      state.items = [];
+      renderResults();
+      setStatus("검색어를 입력하세요.");
+      return;
+    }
     setStatus("검색 중...");
     try {
       const data = await api({ q: state.query, category: state.category, page: state.page, per_page: 20 });
@@ -240,7 +246,7 @@
 
   function open() {
     document.querySelector("#steelmaxOverlay")?.classList.add("on");
-    if (!state.items.length) search();
+    if (!state.items.length && state.query) search();
   }
 
   function close() {
@@ -267,7 +273,7 @@
             <button class="smx-close" id="smxClose" aria-label="닫기">×</button>
           </div>
           <div class="smx-search">
-            <input id="smxQuery" value="강관" placeholder="예: A106, SMLS, API 5L, STS"/>
+            <input id="smxQuery" value="${esc(state.query)}" placeholder="예: A106, SMLS, API 5L, STS"/>
             <button id="smxSearchBtn">검색</button>
           </div>
           <div class="smx-chips" id="smxCategories"><button class="smx-chip on">전체</button></div>
@@ -285,7 +291,7 @@
 
     document.querySelector("#smxClose")?.addEventListener("click", close);
     document.querySelector("#smxSearchBtn")?.addEventListener("click", () => {
-      state.query = document.querySelector("#smxQuery").value.trim() || "강관";
+      state.query = document.querySelector("#smxQuery").value.trim();
       state.page = 1;
       search();
     });
