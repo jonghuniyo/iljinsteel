@@ -6,13 +6,12 @@
 // 4) chartPreviousClose(조회 범위 직전값) 대신 실제 이전 종가/최근 종가 배열 기준으로 전일대비 계산
 
 const SYMBOLS = [
-  { symbol:'HG=F',  name:'구리 (Cu)',     category:'metal', raw:'USD/lb',     f:2204.62, unit:'USD/MT',     color:'#f97316' },
-  { symbol:'ALI=F', name:'알루미늄 (Al)', category:'metal', raw:'USD/MT',     f:1,       unit:'USD/MT',     color:'#3b82f6' },
-  { symbol:'GC=F',  name:'금 (Au)',       category:'metal', raw:'USD/oz',     f:1,       unit:'USD/oz',     color:'#fbbf24' },
-  { symbol:'HRC=F', name:'철강 HRC',      category:'steel', raw:'USD/ST',     f:1.10231, unit:'USD/MT',     color:'#64748b' },
-  { symbol:'TIO=F', name:'철광석 (Fe)',   category:'steel', raw:'USD/MT',     f:1,       unit:'USD/MT',     color:'#92400e' },
-  { symbol:'CL=F',  name:'WTI 원유',      category:'oil',   raw:'USD/bbl',    f:1,       unit:'USD/bbl',    color:'#0C4199' },
-  { symbol:'BZ=F',  name:'브렌트 원유',   category:'oil',   raw:'USD/bbl',    f:1,       unit:'USD/bbl',    color:'#1d4ed8' },
+  { symbol:'HG=F',  name:'구리 (Cu)',   category:'metal', raw:'USD/lb',  f:2204.62, unit:'USD/MT',  color:'#f97316' },
+  { symbol:'ALI=F', name:'알루미늄 (Al)', category:'metal', raw:'USD/MT',  f:1,       unit:'USD/MT',  color:'#3b82f6' },
+  { symbol:'GC=F',  name:'금 (Au)',     category:'metal', raw:'USD/oz',  f:1,       unit:'USD/oz',  color:'#fbbf24' },
+  { symbol:'HRC=F', name:'철강 HRC',      category:'steel', raw:'USD/ST',  f:1.10231, unit:'USD/MT',  color:'#64748b' },
+  { symbol:'CL=F',  name:'WTI 원유',      category:'oil',   raw:'USD/bbl', f:1,       unit:'USD/bbl', color:'#0C4199' },
+  { symbol:'BZ=F',  name:'브렌트 원유',    category:'oil',   raw:'USD/bbl', f:1,       unit:'USD/bbl', color:'#1d4ed8' },
 ];
 
 const SAMPLE_PRICE = {
@@ -167,7 +166,9 @@ async function fetchOpinetFuel(key) {
     const rows = jsons.flatMap(r => r.status === 'fulfilled' ? parseOilRows(r.value) : []);
     const map = new Map(rows.map(r => [String(r.PRODCD || r.prodcd || r.PROD_CD || '').trim(), r]));
     const make = (code, name, color) => {
-      const row = map.get(code) || rows.find(r => String(r.PRODNM || r.PROD_NM || r.prodNm || '').includes(name.replace('국내 ', '').replace(' 평균','')));
+      const row = map.get(code)
+        || rows.find(r => String(r.PRODCD || r.prodcd || r.PROD_CD || '').trim() === code)
+        || rows.find(r => String(r.PRODNM || r.PROD_NM || r.prodNm || '').includes(code === 'B027' ? '휘발유' : '경유'));
       const price = num(row?.PRICE ?? row?.price ?? row?.AVG_PRICE ?? row?.avgPrice);
       const diff = num(row?.DIFF ?? row?.diff ?? row?.CHANGE ?? row?.change);
       return price != null ? {
@@ -238,12 +239,12 @@ export const handler = async () => {
         demo,
         updatedAt:new Date().toISOString(),
         notes:[
-          !nickel ? '니켈 실시간 표시에는 METALS_DEV_KEY 환경변수 설정이 필요합니다.' : null,
-          !(domesticFuel?.length) ? '국내 휘발유/경유 평균가격 표시에는 Vercel 환경변수 OPINET_API_KEY(또는 OPINET_CODE/OPINET_CERTKEY) 설정이 필요합니다.' : null,
-          demo ? '외부 시세 API 접속 실패로 샘플 가격을 표시하지 않습니다.' : null,
-          '철강 HRC(HRC=F)와 철광석(TIO=F)은 Yahoo Finance 선물 심볼 기반 참고값입니다. 응답이 없거나 0이면 표시하지 않습니다.',
-          '광물 가격은 Yahoo Finance 선물 심볼 기반 참고값이며 LME official cash/3M 가격이 아닙니다.',
-          '크롬(Cr)은 무료 실시간 공개 API 확보가 어려워 제외했습니다.',
+          !nickel ? '니켈 실시간 표시는 METALS_DEV_KEY 환경변수 설정이 필요합니다.' : null,
+          !(domesticFuel?.length) ? '국내 휘발유/경유 평균가격 표시는 Vercel 환경변수 OPINET_API_KEY 또는 OPINET_CODE/OPINET_CERTKEY 설정이 필요합니다.' : null,
+          demo ? '외부 시세 API 접속 실패로 샘플 가격은 표시하지 않습니다.' : null,
+          '철강 HRC(HRC=F)는 Yahoo Finance 선물 시세 기반 참고값입니다. 응답이 없거나 0이면 표시하지 않습니다.',
+          '광물 가격은 Yahoo Finance 선물 시세 기반 참고값입니다.',
+          '크롬(Cr)은 무료 실시간 공개 API 정보가 어려워 제외했습니다.',
         ].filter(Boolean),
         metals,
         byCategory:{
