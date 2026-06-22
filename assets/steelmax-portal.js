@@ -65,7 +65,7 @@
       .smx-overlay.on{display:flex}
       .smx-panel{width:min(1240px,96vw);height:min(840px,94vh);min-height:0;border-radius:22px;background:#f8fafc;color:#1e293b;box-shadow:0 26px 80px rgba(15,23,42,.32);display:grid;grid-template-columns:410px minmax(0,1fr);overflow:hidden;border:1px solid rgba(148,163,184,.35);font-family:'Noto Sans KR',system-ui,sans-serif}
       .smx-left{background:#fff;border-right:1px solid #e2e8f0;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:0;overflow:hidden}
-      .smx-main{padding:22px;overflow:auto;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex}
+      .smx-main{padding:22px;overflow:auto;min-height:0;height:100%;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex}
       .smx-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-shrink:0}
       .smx-title{font-size:21px;font-weight:900;letter-spacing:-.7px;margin:0;color:#0f172a}
       .smx-sub{font-size:12px;color:#64748b;margin-top:5px;line-height:1.55}
@@ -84,7 +84,7 @@
       .smx-card strong{display:block;font-size:13.5px;line-height:1.35;color:#0f172a;letter-spacing:-.3px}
       .smx-card p{margin:6px 0 0;color:#64748b;font-size:11.5px;line-height:1.5}
       .smx-meta{display:flex;gap:8px;align-items:center;margin-top:7px;font-size:10.5px;color:#94a3b8;font-weight:700;flex-wrap:wrap}
-      .smx-article{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:22px;height:100%;min-height:0;display:flex;flex-direction:column;min-width:0;flex:1}
+      .smx-article{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:22px;height:100%;min-height:0;display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden}
       .smx-article h2{font-size:24px;line-height:1.28;letter-spacing:-.8px;margin:0 0 10px}
       .smx-article .body{white-space:pre-wrap;font-size:14.5px;line-height:1.85;color:#334155;max-width:850px;min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:4px}
       .smx-source{margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;line-height:1.6}
@@ -97,17 +97,34 @@
       .smx-note{font-size:11px;line-height:1.6;color:#64748b;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:13px;padding:10px}
       .smx-status{font-size:11px;color:#64748b;min-height:16px;flex-shrink:0}
       @media(max-width:860px){
-        .smx-overlay{align-items:stretch;padding:10px}
-        .smx-panel{grid-template-columns:1fr;grid-template-rows:minmax(250px,44vh) minmax(0,1fr);height:calc(100vh - 20px);width:100%;border-radius:16px}
-        .smx-left{height:auto;max-height:none;border-right:0;border-bottom:1px solid #e2e8f0;padding:14px;gap:10px}
-        .smx-main{padding:14px;min-height:0;overflow:auto;display:flex}
-        .smx-article{padding:16px;min-height:0}
+        .smx-overlay{align-items:stretch;justify-content:stretch;padding:0;background:#f8fafc}
+        .smx-panel{grid-template-columns:1fr;grid-template-rows:minmax(238px,42dvh) minmax(0,1fr);height:100dvh;width:100vw;border:0;border-radius:0;box-shadow:none}
+        .smx-left{height:auto;max-height:none;border-right:0;border-bottom:1px solid #e2e8f0;padding:calc(12px + env(safe-area-inset-top)) 12px 10px;gap:9px}
+        .smx-close{width:42px;height:42px;border-radius:13px;font-size:24px}
+        .smx-search{gap:6px}
+        .smx-search input{height:44px;border-radius:13px;font-size:16px}
+        .smx-search button,.smx-primary{height:44px;border-radius:13px;font-size:14px;min-width:62px}
+        .smx-chip{padding:8px 10px;font-size:11.5px;min-height:34px}
+        .smx-results{gap:7px}
+        .smx-card{padding:11px;border-radius:13px}
+        .smx-card strong{font-size:13px}
+        .smx-main{padding:12px 12px calc(12px + env(safe-area-inset-bottom));min-height:0;overflow:auto;display:flex}
+        .smx-article{padding:15px;min-height:0;height:auto}
         .smx-article h2{font-size:20px}
         .smx-article .body{font-size:13.5px;line-height:1.75;max-height:none}
         .smx-sub{font-size:11px}
         .smx-chips{max-height:none;overflow:visible}
+        .smx-tools{gap:7px;margin:12px 0 14px}
+        .smx-tools button,.smx-tools a{min-height:40px;flex:1;text-align:center;display:flex;align-items:center;justify-content:center}
         #smxSaved{display:none}
         .smx-saved-title{display:none}
+      }
+      @media(max-width:420px){
+        .smx-panel{grid-template-rows:minmax(220px,40dvh) minmax(0,1fr)}
+        .smx-title{font-size:18px}
+        .smx-sub{display:none}
+        .smx-left{padding-left:10px;padding-right:10px}
+        .smx-main{padding-left:10px;padding-right:10px}
       }
     `;
     document.head.appendChild(style);
@@ -116,6 +133,10 @@
   function renderResults() {
     const list = document.querySelector("#smxResults");
     if (!list) return;
+    if (!state.query && !state.category && !state.items.length) {
+      list.innerHTML = `<div class="smx-note">검색어를 입력하면 자료가 표시됩니다. 기본 상태에서는 아무 자료도 검색하지 않습니다.</div>`;
+      return;
+    }
     list.innerHTML = state.items.map((it) => `
       <button class="smx-card" data-id="${esc(it.id)}">
         <strong>${esc(it.title)}</strong>
@@ -149,7 +170,7 @@
     const main = document.querySelector("#smxMain");
     if (!main) return;
     if (!state.selected) {
-      main.innerHTML = `<div class="smx-empty"><div><strong style="font-size:18px;color:#0f172a">철강·강관 자료실</strong><br/>왼쪽에서 철강·강관·규격 키워드를 검색하면 본문을 이곳에서 확인하고 저장할 수 있습니다.<br/><br/><span style="font-size:12px">원문 출처 링크는 본문 하단에만 표시됩니다.</span></div></div>`;
+      main.innerHTML = `<div class="smx-empty"><div><strong style="font-size:18px;color:#0f172a">철강·강관 자료실</strong><br/>왼쪽에서 키워드를 검색하면 본문을 이곳에서 확인하고 저장할 수 있습니다.</div></div>`;
       return;
     }
     const it = state.selected;
@@ -164,7 +185,6 @@
           <button id="smxCopyBtn">본문 복사</button>
         </div>
         <div class="body">${esc(it.content || it.excerpt || "본문을 불러오지 못했습니다.")}</div>
-        <div class="smx-source">자료 출처: ${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">원문 링크</a>` : "원문"}</div>
       </article>`;
     document.querySelector("#smxSaveBtn")?.addEventListener("click", () => {
       const key = String(it.id || it.url);
@@ -177,7 +197,7 @@
     });
     document.querySelector("#smxCopyBtn")?.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(`${it.title}\n\n${it.content || it.excerpt || ""}\n\n자료 출처: ${it.url || "원문"}`);
+        await navigator.clipboard.writeText(`${it.title}\n\n${it.content || it.excerpt || ""}`);
         setStatus("본문을 클립보드에 복사했습니다.");
       } catch {
         setStatus("복사 권한이 없어 실패했습니다.");
@@ -244,9 +264,24 @@
     renderCategories();
   }
 
+  function resetSearchView() {
+    state.query = "";
+    state.category = "";
+    state.page = 1;
+    state.items = [];
+    state.selected = null;
+    const input = document.querySelector("#smxQuery");
+    if (input) input.value = "";
+    renderCategories();
+    renderResults();
+    renderSelected();
+    setStatus("");
+    document.querySelector("#smxMain")?.scrollTo?.({ top: 0 });
+  }
+
   function open() {
     document.querySelector("#steelmaxOverlay")?.classList.add("on");
-    if (!state.items.length && state.query) search();
+    resetSearchView();
   }
 
   function close() {
@@ -279,7 +314,7 @@
           <div class="smx-head">
             <div>
               <h1 class="smx-title">철강·강관 자료실</h1>
-              <div class="smx-sub">철강·강관·규격 자료를 검색하고 개인 자료로 저장합니다. 원문 출처는 본문 하단에 표시됩니다.</div>
+              <div class="smx-sub">철강·강관·규격 자료를 검색하고 개인 자료로 저장합니다.</div>
             </div>
             <button class="smx-close" id="smxClose" aria-label="닫기">×</button>
           </div>

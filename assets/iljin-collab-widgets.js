@@ -322,8 +322,27 @@
       body header>div{min-height:40px!important}
       body header>div>div{height:40px!important;min-height:40px!important;align-items:center!important}
       aside a[href="/"]{height:64px!important;min-height:64px!important}
-      aside a[href="/"] img[src*="iljin-logo"]{height:50px!important;width:190px!important;max-width:190px!important;object-fit:contain!important;transform:scale(1.08);transform-origin:center}
-      @media(max-width:900px){.ilfw-root,.ilbattle-overlay{display:none!important}}
+      aside a[href="/"] img[src*="logo"]{height:38px!important;width:auto!important;max-width:176px!important;object-fit:contain!important;transform:none!important;transform-origin:center}
+      @media(max-width:760px){
+        html,body{overscroll-behavior-y:none;-webkit-text-size-adjust:100%}
+        body{touch-action:manipulation}
+        body header{height:56px!important;min-height:56px!important;overflow-x:auto!important;overflow-y:hidden!important;gap:8px!important;padding-right:8px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+        body header::-webkit-scrollbar{display:none}
+        body header>button:first-child{height:56px!important;width:50px!important;min-width:50px!important}
+        body header>div{flex-shrink:0!important}
+        body header>div>div{height:36px!important;min-height:36px!important}
+        aside a[href="/"]{height:58px!important;min-height:58px!important}
+        aside a[href="/"] img[src*="logo"]{height:34px!important;max-width:166px!important}
+        main{scroll-padding-bottom:92px}
+        button,a,input,select,textarea{touch-action:manipulation}
+        input,select,textarea{font-size:16px!important}
+        .ilbattle-overlay{align-items:stretch!important;padding:0!important}
+        .ilbattle-panel{width:100vw!important;max-height:100dvh!important;height:100dvh!important;border-radius:0!important;border:0!important}
+        .ilbattle-head{padding:calc(14px + env(safe-area-inset-top)) 14px 12px!important}
+        .ilbattle-body{grid-template-columns:1fr!important;padding:14px!important;gap:10px!important}
+        .ilbattle-form{grid-template-columns:1fr!important}
+      }
+      @media(max-width:900px){.ilfw-root{display:none!important}}
       @media(max-width:1100px){.ilfw-root{right:76px;max-width:380px}.ilfw-card{width:76px}.ilfw-animal{width:74px;height:56px}.ilbattle-body{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
@@ -809,11 +828,8 @@
   }
 
   function installQuickMenuHook() {
-    document.addEventListener("click", () => {
-      setTimeout(injectQuickMenuButtons, 40);
-      setTimeout(injectQuickMenuButtons, 180);
-    });
-    new MutationObserver(injectQuickMenuButtons).observe(document.body, { childList: true, subtree: true });
+    // 배포 환경에서 React가 관리하는 빠른 메뉴 안에 버튼을 직접 끼워 넣으면
+    // insertBefore 충돌로 전체 화면 렌더가 멈출 수 있어 비활성화합니다.
   }
 
   function replaceMarketCopy() {
@@ -866,11 +882,11 @@
       if ((el.textContent || "").trim() === "이번 주 식단표(마포)") el.textContent = "이번 주 식단표";
     });
 
-    document.querySelectorAll('img[src*="iljin-logo"]').forEach((img) => {
-      img.style.width = "190px";
-      img.style.height = "50px";
+    document.querySelectorAll('img[src*="logo"]').forEach((img) => {
+      img.style.width = "auto";
+      img.style.height = "38px";
       img.style.objectFit = "contain";
-      img.style.maxWidth = "calc(100% - 24px)";
+      img.style.maxWidth = "176px";
       const holder = img.closest("a,div");
       if (holder) {
         holder.style.minHeight = "64px";
@@ -888,9 +904,8 @@
 
   function installMarketCopyHook() {
     if (marketCopyObserver || !document.body) return;
-    scheduleMarketCopyReplace();
-    marketCopyObserver = new MutationObserver(scheduleMarketCopyReplace);
-    marketCopyObserver.observe(document.body, { childList: true, subtree: true });
+    // React 렌더링 이후 텍스트 노드나 요소를 직접 수정/삭제하지 않습니다.
+    // 필요한 문구와 로고 보정은 메인 번들/CSS에서 처리합니다.
   }
 
   function mount() {

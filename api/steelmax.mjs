@@ -81,10 +81,39 @@ function stripHtml(html = "") {
     .trim());
 }
 
+function cleanSteelContent(text = "") {
+  const lines = String(text)
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const dropLine = [
+    /^STEELMAX\s+Steel\s+Story$/i,
+    /^Steel\s+Story$/i,
+    /^STEELMAX$/i,
+  ];
+  const tailStart = [
+    /스틸맥스는\s+연구소\s+수준/i,
+    /Citius,\s*Altius,\s*Fortius/i,
+    /^Tel\s*:/i,
+    /^International\s*:/i,
+    /구매.*문의.*견적/i,
+    /Contact\s+us/i,
+    /steelmax\.co\.kr\/contact/i,
+  ];
+  const kept = [];
+  for (const line of lines) {
+    if (tailStart.some((pattern) => pattern.test(line))) break;
+    if (dropLine.some((pattern) => pattern.test(line))) continue;
+    kept.push(line);
+  }
+  return kept.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function normalizePost(post) {
   const title = stripHtml(post?.title?.rendered || post?.title || "제목 없음");
-  const excerpt = stripHtml(post?.excerpt?.rendered || post?.excerpt || "").slice(0, 320);
-  const contentText = stripHtml(post?.content?.rendered || post?.content || "");
+  const contentText = cleanSteelContent(stripHtml(post?.content?.rendered || post?.content || ""));
+  const excerpt = cleanSteelContent(stripHtml(post?.excerpt?.rendered || post?.excerpt || "")).slice(0, 320);
   const categories = Array.isArray(post?.categories) ? post.categories : [];
   return {
     id: post?.id,
@@ -158,8 +187,8 @@ async function getPost(query) {
     return {
       id: null,
       title,
-      excerpt: stripHtml(article).slice(0, 320),
-      content: stripHtml(article),
+    excerpt: cleanSteelContent(stripHtml(article)).slice(0, 320),
+    content: cleanSteelContent(stripHtml(article)),
       date: null,
       modified: null,
       url: url.toString(),
